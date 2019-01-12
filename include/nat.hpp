@@ -8,6 +8,7 @@ namespace lnum {
     class nat {
         std::vector<unsigned long> digits;
 
+        bool is_max_digit(int i) { digits.at(i) == ul_len; }
     public:
         nat() : digits{std::vector<unsigned long>(1, 0)} {}
         nat(unsigned n) : digits{std::vector<unsigned long>(1, n)} {}
@@ -16,6 +17,9 @@ namespace lnum {
         }
 
         nat& operator++();
+
+        nat& operator+=(const std::vector<bool> &c);
+        nat& operator+=(const nat &m);
 
         friend std::ostream& operator<<(std::ostream& stream, const nat &n);
     };
