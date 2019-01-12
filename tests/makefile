@@ -1,4 +1,4 @@
-CXXFLAGS = -I../include
+CXXFLAGS = -std=c++11 -I../include
 
 CPP_FILES = $(wildcard ../src/*.cpp)
 _OBJS = $(subst .cpp,.o, $(CPP_FILES))
@@ -16,6 +16,11 @@ test:
 
 tincr: $(OBJECTS)
 	g++ $(CXXFLAGS) -o ../build/$@ $@.cpp  $(OBJECTS)
+
+
+tincr0: $(OBJECTS)
+	g++ $(CXXFLAGS) -o ../build/$@ $@.cpp  $(OBJECTS)
+
 
 
 

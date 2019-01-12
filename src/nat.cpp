@@ -16,10 +16,11 @@ nat& nat::operator++() {
 
 namespace lnum {
     std::ostream& operator<<(std::ostream& stream, const nat &n) {
-        int i{n.digits.size() - 1};
+        size_t i{n.digits.size() - 1};
         stream << std::hex << n.digits[i];
-        for (; 0 <= i; i--) {
-            stream << std::setfill('0') << std::setw(8) << std::hex
+        for (; 0 != i;) {
+            i--;
+            stream << std::setfill('0') << std::setw(ul_len * 2) << std::hex
                    << n.digits.at(i);
         }
         return stream;
