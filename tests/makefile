@@ -1,4 +1,4 @@
-CXXFLAGS = -g -std=c++11 -I../include
+CXXFLAGS = -g -O3 -std=c++11 -I../include -I. -lm -lgmp
 
 CPP_FILES = $(wildcard ../src/*.cpp)
 _OBJS = $(subst .cpp,.o, $(CPP_FILES))
@@ -8,24 +8,34 @@ OBJECTS = $(subst ../src/,, $(patsubst %,$(ODIR)/%,$(_OBJS)))
 ../obj/nat.o: $(CPP_FILES)
 	g++ $(CXXFLAGS) -c -o $@ $<
 
-# obj/%.o: ../src/%.cpp obj
-# 	g++ $(CXXFLAGS) -c -o ../$@ $<
+tests: tincr tincr0 tsum tsum0 tread 
 
-test:
-	echo $(OBJECTS)
 
 tincr: $(OBJECTS)
-	g++ $(CXXFLAGS) -o ../build/$@ $@.cpp  $(OBJECTS)
+	g++ -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
 tincr0: $(OBJECTS)
-	g++ $(CXXFLAGS) -o ../build/$@ $@.cpp  $(OBJECTS)
+	g++ -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 tsum: $(OBJECTS)
-	g++ $(CXXFLAGS) -o ../build/$@ $@.cpp  $(OBJECTS)
+	g++ -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 tsum0: $(OBJECTS)
-	g++ $(CXXFLAGS) -o ../build/$@ $@.cpp  $(OBJECTS)
+	g++ -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tread: $(OBJECTS)
+	g++ -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tduplicate: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tduplicate1: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+
+tlastbit: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
 
