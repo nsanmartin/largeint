@@ -6,6 +6,7 @@
 #include <random>
 #include <gmp.h>
 
+
 constexpr unsigned max_num_of_digits = 1024 * 1024;
 
 constexpr unsigned long ulong_max = std::numeric_limits<unsigned long>::max();
@@ -30,7 +31,7 @@ std::string random_string (int size) {
 }
 
 
-bool eq_nat_mpz (lnum::nat nat, mpz_t mpz) {
+bool eq_nat_mpz (lint::nat nat, mpz_t mpz) {
     std::string mpz_str{mpz_get_str (NULL, 16, mpz)};
     return mpz_str == nat.to_string();
 
@@ -38,7 +39,7 @@ bool eq_nat_mpz (lnum::nat nat, mpz_t mpz) {
 struct input_number {
     unsigned size;
     std::string s;
-    lnum::nat nat;
+    lint::nat nat;
     mpz_t mpz;
     input_number(unsigned sz) :
         size{sz}, s{random_string(size)}, nat{s} {
@@ -55,3 +56,6 @@ struct input_number {
 };
 
 
+lint::digit_t nth_bit(lint::digit_t word, int n) {
+    return  1 & ((word) >> (n));
+}

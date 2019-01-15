@@ -12,7 +12,7 @@ int main(int argc, char ** argv)
     std::string fst{argv[1]};
     std::string snd{argv[2]};
 
-    lnum::nat sum {lnum::nat{fst} + lnum::nat{snd}};
+    lint::nat sum {lint::nat{fst} + lint::nat{snd}};
 
     std::cout << sum << std::endl;
 }

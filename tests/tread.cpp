@@ -9,7 +9,7 @@ constexpr unsigned long ulong_max = std::numeric_limits<unsigned long>::max();
 
 
 void test_input(std::string s) {
-    lnum::nat n{s};
+    lint::nat n{s};
     std::stringstream outss; outss << n;
     std::string out{outss.str()};
 

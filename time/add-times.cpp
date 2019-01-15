@@ -10,10 +10,10 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    lnum::nat n{std::string{argv[1]}};
+    lint::nat n{std::string{argv[1]}};
     int times{std::stoi(argv[2])};
     
-    lnum::nat sum;
+    lint::nat sum;
     for (int i = 0 ; i < times; i++) {
         sum += n;
     }

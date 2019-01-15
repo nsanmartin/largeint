@@ -4,8 +4,8 @@ int main(int argc, char ** argv)
 {
     unsigned long number{(unsigned long)-1};
 
-    lnum::nat nat0 {number};
-    lnum::nat nat {number};
+    lint::nat nat0 {number};
+    lint::nat nat {number};
 
     nat += nat;
     if (nat < nat0) {

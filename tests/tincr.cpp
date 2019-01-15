@@ -13,7 +13,7 @@ int main(int argc, char ** argv) {
         digits.push_back(std::stoul(argv[i]));
     }
 
-    lnum::nat n{digits};
+    lint::nat n{digits};
     std::cout << n << std::endl;
     ++n;
     std::cout << n << std::endl;

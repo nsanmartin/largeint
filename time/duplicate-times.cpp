@@ -9,7 +9,7 @@ int main(int argc, char ** argv)
         return 0;
     }
        
-    lnum::nat nat{std::string{argv[1]}};
+    lint::nat nat{std::string{argv[1]}};
     int times{std::stoi(argv[2])};
        
     std::cout << nat << "  num: " << argv[1]

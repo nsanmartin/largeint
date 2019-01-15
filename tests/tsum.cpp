@@ -4,7 +4,7 @@ int main(int argc, char ** argv) {
     input_number n{rand_size(rand_gen)};
     input_number m{rand_size(rand_gen)};
 
-    lnum::nat sum_nat {n.nat + m.nat};
+    lint::nat sum_nat {n.nat + m.nat};
     mpz_t sum_mpz;
     mpz_init (sum_mpz);
     mpz_add (sum_mpz, n.mpz, m.mpz);

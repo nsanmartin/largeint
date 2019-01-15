@@ -4,7 +4,7 @@
 #include <bitset>
 #include <sstream>
 
-using namespace lnum;
+using namespace lint;
 nat::nat(std::string s) {
     std::string hex_prefix{"0x"};
     // bool is_hex{std::mismatch(s.begin(), s.end(), hex_prefix.begin()) == hex_prefix.end()};
@@ -18,7 +18,7 @@ nat::nat(std::string s) {
 }
 
 void nat::construct_from_hex_string(std::string hexs) {
-    int nchars{ul_len * 2};
+    int nchars{digit_t_len * 2};
     int i{};
 
     std::size_t find {hexs.find_first_not_of('0')};
@@ -58,7 +58,7 @@ nat& nat::operator++() {
 void nat::duplicate() {
     digit_t lastbit{0};
     for (int i = 0; i < digits.size(); i++) {
-        digit_t tmp {nth_bit(digits[i], BITS_IN_UL - 1)};
+        digit_t tmp {nth_bit(digits[i], BITS_IN_DIGIT - 1)};
         digits[i] <<= 1;
         digits[i] |= lastbit;
         lastbit = tmp;
@@ -112,7 +112,54 @@ nat& nat::operator+=(const nat &m) {
     return *this;
 }
 
+void nat::mul_digits_by_low(lowdigit_t n) {
+    digit_t carry{};
+    for (auto& d : digits) {
+        
+        digit_t low{low_word(d) * static_cast<digit_t>(n)};
+        digit_t high{high_word(d) * static_cast<digit_t>(n)};
+        // overflow in carry + low??
+        d = (carry + low) | (high << (BITS_IN_DIGIT / 2));
+        carry = high >> (BITS_IN_DIGIT / 2);
+    }
+    if (carry != 0) {
+        digits.push_back(carry);
+    }
+}
 
+void nat::mul_digits_by_high(highdigit_t n) {
+    digit_t carry{};
+
+    digit_t fst_high{high_word(digits[0]) * static_cast<digit_t>(n)};
+    // todo!!!
+    
+    for (auto& d : digits) {
+        
+        digit_t low{low_word(d) * static_cast<digit_t>(n)};
+        digit_t high{high_word(d) * static_cast<digit_t>(n)};
+
+        d = (carry + low) | (high << (BITS_IN_DIGIT / 2));
+        carry = high >> (BITS_IN_DIGIT / 2);
+    }
+    if (carry != 0) {
+        digits.push_back(carry);
+    }
+}
+
+
+nat& nat::operator*=(const nat &m) {
+    // for (int i = 0; i < digits.size(); i++) {
+    //     digit_t mlow{ low_word(m.digits[i]) };
+    //     for (int j = i; j < digits.size(); j++) {
+    //         digit_t low{ low_word(digits[j]) };
+            
+    //         digit_t prodlow {mlow * low};
+    //         digit_t prodhigh {mlow * hight};
+    //     }
+        
+    // }
+    return *this;
+}
 void nat::add_digits (const digit_t x, const digit_t y,
                       digit_t &carry, digit_t &sum)
 {
@@ -130,11 +177,11 @@ void nat::mul_digits(digit_t const x, digit_t const y,
     right = 1 & y ? x : 0;
     digit_t n = 1;
 
-    while (y >> n && n < BITS_IN_UL) {
+    while (y >> n && n < BITS_IN_DIGIT) {
 
         add_digits(right, nth_bit(y, n) ? x << n : 0, carry, sum);
             
-        left += nth_bit(y, n) ? x >> (BITS_IN_UL - n)  : 0;
+        left += nth_bit(y, n) ? x >> (BITS_IN_DIGIT - n)  : 0;
         left += carry;
         right = sum;
         n++;
@@ -142,13 +189,13 @@ void nat::mul_digits(digit_t const x, digit_t const y,
 }
 
 
-namespace lnum {
+namespace lint {
     std::ostream& operator<<(std::ostream& stream, const nat &n) {
         size_t i{n.digits.size() - 1};
         stream << std::hex << n.digits[i];
         for (; 0 != i;) {
             i--;
-            stream << std::setfill('0') << std::setw(ul_len * 2) << std::hex
+            stream << std::setfill('0') << std::setw(digit_t_len * 2) << std::hex
                    << n.digits.at(i);
         }
         return stream;

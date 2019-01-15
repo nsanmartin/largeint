@@ -5,7 +5,7 @@ int main(int argc, char ** argv)
     unsigned long number{2};
     int times = 99999;
     
-    lnum::nat nat {number};
+    lint::nat nat {number};
     mpz_t mpz;
     mpz_init_set_ui (mpz, number);
 

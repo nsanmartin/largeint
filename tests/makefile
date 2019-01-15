@@ -8,7 +8,9 @@ OBJECTS = $(subst ../src/,, $(patsubst %,$(ODIR)/%,$(_OBJS)))
 ../obj/nat.o: $(CPP_FILES)
 	g++ $(CXXFLAGS) -c -o $@ $<
 
-tests: tincr tincr0 tsum tsum0 tread 
+tests: tincr tincr0 tsum tsum0 tread tduplicate tduplicate1 \
+	tlastbit tmul-digits
+
 
 
 tincr: $(OBJECTS)
@@ -35,6 +37,10 @@ tduplicate1: $(OBJECTS)
 
 
 tlastbit: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+
+tmul-digits: $(OBJECTS)
 	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
