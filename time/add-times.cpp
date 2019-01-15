@@ -1,5 +1,5 @@
 #include <iostream>
-#include <nat.hpp>
+#include <natural.hpp>
 #include <string>
 
 int main(int argc, char ** argv)
@@ -10,10 +10,10 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    lint::nat n{std::string{argv[1]}};
+    lint::natural n{std::string{argv[1]}};
     int times{std::stoi(argv[2])};
     
-    lint::nat sum;
+    lint::natural sum;
     for (int i = 0 ; i < times; i++) {
         sum += n;
     }

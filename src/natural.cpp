@@ -1,11 +1,11 @@
-#include <nat.hpp>
+#include <natural.hpp>
 #include <iostream>
 #include <iomanip>
 #include <bitset>
 #include <sstream>
 
 using namespace lint;
-nat::nat(std::string s) {
+natural::natural(std::string s) {
     std::string hex_prefix{"0x"};
     // bool is_hex{std::mismatch(s.begin(), s.end(), hex_prefix.begin()) == hex_prefix.end()};
     // if (is_hex) {
@@ -17,7 +17,7 @@ nat::nat(std::string s) {
     
 }
 
-void nat::construct_from_hex_string(std::string hexs) {
+void natural::construct_from_hex_string(std::string hexs) {
     int nchars{digit_t_len * 2};
     int i{};
 
@@ -45,7 +45,7 @@ void nat::construct_from_hex_string(std::string hexs) {
 }
 
 
-nat& nat::operator++() {
+natural& natural::operator++() {
     int i{0};
     while (++digits.at(i) == 0 && ++i < digits.size()) 
         ;
@@ -55,7 +55,7 @@ nat& nat::operator++() {
     return *this;
 }
 
-void nat::duplicate() {
+void natural::duplicate() {
     digit_t lastbit{0};
     for (int i = 0; i < digits.size(); i++) {
         digit_t tmp {nth_bit(digits[i], BITS_IN_DIGIT - 1)};
@@ -69,7 +69,7 @@ void nat::duplicate() {
     }
 }
 
-bool nat::operator==(const nat &m) {
+bool natural::operator==(const natural &m) {
     if (digits.size() != m.digits.size()) { return false; }
     for (int i = 0; i < digits.size(); i++) {
         if (digits[i] != m.digits[i]) { return false; }
@@ -77,7 +77,7 @@ bool nat::operator==(const nat &m) {
     return true;
 }
 
-bool nat::operator<(const nat &m) {
+bool natural::operator<(const natural &m) {
     if (digits.size() != m.digits.size()) {
         return digits.size() < m.digits.size();
     }
@@ -88,7 +88,7 @@ bool nat::operator<(const nat &m) {
     return false;
 }
 
-nat& nat::operator+=(const nat &m) {
+natural& natural::operator+=(const natural &m) {
     if (this == &m) {
         duplicate();
         return *this;
@@ -112,7 +112,7 @@ nat& nat::operator+=(const nat &m) {
     return *this;
 }
 
-void nat::mul_digits_by_low(lowdigit_t n) {
+void natural::mul_digits_by_low(lowdigit_t n) {
     digit_t carry{};
     for (auto& d : digits) {
         
@@ -127,7 +127,7 @@ void nat::mul_digits_by_low(lowdigit_t n) {
     }
 }
 
-void nat::mul_digits_by_high(highdigit_t n) {
+void natural::mul_digits_by_high(highdigit_t n) {
     digit_t carry{};
 
     digit_t fst_high{high_word(digits[0]) * static_cast<digit_t>(n)};
@@ -147,7 +147,7 @@ void nat::mul_digits_by_high(highdigit_t n) {
 }
 
 
-nat& nat::operator*=(const nat &m) {
+natural& natural::operator*=(const natural &m) {
     // for (int i = 0; i < digits.size(); i++) {
     //     digit_t mlow{ low_word(m.digits[i]) };
     //     for (int j = i; j < digits.size(); j++) {
@@ -160,7 +160,7 @@ nat& nat::operator*=(const nat &m) {
     // }
     return *this;
 }
-void nat::add_digits (const digit_t x, const digit_t y,
+void natural::add_digits (const digit_t x, const digit_t y,
                       digit_t &carry, digit_t &sum)
 {
     carry = x + y < x ? 1 : 0;
@@ -168,7 +168,7 @@ void nat::add_digits (const digit_t x, const digit_t y,
 }
 
 
-void nat::mul_digits(digit_t const x, digit_t const y,
+void natural::mul_digits(digit_t const x, digit_t const y,
                 digit_t &left, digit_t &right) {
     if (x == 0 || y == 0) { left = right = 0; return; }
 
@@ -190,7 +190,7 @@ void nat::mul_digits(digit_t const x, digit_t const y,
 
 
 namespace lint {
-    std::ostream& operator<<(std::ostream& stream, const nat &n) {
+    std::ostream& operator<<(std::ostream& stream, const natural &n) {
         size_t i{n.digits.size() - 1};
         stream << std::hex << n.digits[i];
         for (; 0 != i;) {
@@ -202,12 +202,12 @@ namespace lint {
     }
 
     
-    std::string nat::to_string() {
+    std::string natural::to_string() {
         std::stringstream out_str; out_str << *this;
         return out_str.str();
         
     }
 
-    nat operator+(nat n, const nat &m) { return n+= m; }
+    natural operator+(natural n, const natural &m) { return n+= m; }
 }
 

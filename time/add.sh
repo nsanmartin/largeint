@@ -4,8 +4,8 @@ TIMECMD='/usr/bin/time -f %U\t%S\t%E '
 x=$1
 y=$2
 
-nat_time () {
-    printf "nat\t"
+natural_time () {
+    printf "natural\t"
     ${TIMECMD} ../build/add $1 $2 > /dev/null
 }
 
@@ -15,5 +15,5 @@ py_time () {
     
     }
 
-nat_time $x $y
+natural_time $x $y
 py_time $x $y

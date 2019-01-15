@@ -8,16 +8,16 @@ int main(int argc, char ** argv)
         0xfffffffff, 0xfffffffff, 0xfffffffff, 0xfffffffff
             };
     
-    lint::nat n { ds};
+    lint::natural n { ds};
     lint::lowdigit_t m {2};
-    lint::nat k{n};
+    lint::natural k{n};
     std::cout << "n: " << n << "\t m: " << m << std::endl;
     n.mul_digits_by_low(m);
     k += k;
     std::cout << "n * m: "   << n << std::endl
               << "n + n: " << k << std::endl;
-    // if (nat < nat0) {
-    //     std::cerr << "error in nat::operand +=(const nat &)"
+    // if (natural < natural0) {
+    //     std::cerr << "error in natural::operand +=(const natural &)"
     //               << std::endl;
     //     exit (1);
     // }

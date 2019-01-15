@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <nat.hpp>
+#include <natural.hpp>
 #include <limits>
 #include <sstream>
 
@@ -9,7 +9,7 @@ constexpr unsigned long ulong_max = std::numeric_limits<unsigned long>::max();
 
 
 void test_input(std::string s) {
-    lint::nat n{s};
+    lint::natural n{s};
     std::stringstream outss; outss << n;
     std::string out{outss.str()};
 

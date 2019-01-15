@@ -5,7 +5,7 @@ _OBJS = $(subst .cpp,.o, $(CPP_FILES))
 ODIR=../obj
 OBJECTS = $(subst ../src/,, $(patsubst %,$(ODIR)/%,$(_OBJS)))
 
-../obj/nat.o: $(CPP_FILES)
+../obj/natural.o: $(CPP_FILES)
 	g++ $(CXXFLAGS) -c -o $@ $<
 
 tests: tincr tincr0 tsum tsum0 tread tduplicate tduplicate1 \

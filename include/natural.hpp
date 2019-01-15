@@ -18,7 +18,7 @@ namespace lint {
 
     const  digit_t DIGIT_LOW_MASK = 0xffffffff;
     
-    class nat {
+    class natural {
         std::vector<digit_t> digits;
         void construct_from_hex_string(std::string hexs);
         bool is_max_digit(int i) { digits.at(i) == digit_t_len; }
@@ -40,23 +40,23 @@ namespace lint {
     public:
         void mul_digits_by_low(lowdigit_t n);
 
-        nat() : digits{std::vector<digit_t>(1, 0)} {}
-        nat(digit_t n) : digits{std::vector<digit_t>(1, n)} {}
-        nat(std::vector<digit_t> uv) : digits{uv} {
+        natural() : digits{std::vector<digit_t>(1, 0)} {}
+        natural(digit_t n) : digits{std::vector<digit_t>(1, n)} {}
+        natural(std::vector<digit_t> uv) : digits{uv} {
             if (digits.size() == 0) digits.push_back(0);
         }
-        nat(std::string);
-        nat& operator++();
-        bool operator==(const nat &m);
-        bool operator<(const nat &m);
+        natural(std::string);
+        natural& operator++();
+        bool operator==(const natural &m);
+        bool operator<(const natural &m);
         
-        nat& operator+=(const nat &m);
-        nat& operator*=(const nat &m);
-        friend std::ostream& operator<<(std::ostream& stream, const nat &n);
+        natural& operator+=(const natural &m);
+        natural& operator*=(const natural &m);
+        friend std::ostream& operator<<(std::ostream& stream, const natural &n);
         std::string to_string();
     };
 
-    nat operator+(nat n, const nat &m);
+    natural operator+(natural n, const natural &m);
 }
 
 

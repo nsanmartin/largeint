@@ -12,7 +12,8 @@ add: $(OBJECTS)
 	g++ -o ./build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
-
+tags:
+	ctags -R -e .
 
 
 

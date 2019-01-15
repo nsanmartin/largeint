@@ -4,12 +4,12 @@ int main(int argc, char ** argv)
 {
     unsigned long number{(unsigned long)-1};
 
-    lint::nat nat0 {number};
-    lint::nat nat {number};
+    lint::natural natural0 {number};
+    lint::natural natural {number};
 
-    nat += nat;
-    if (nat < nat0) {
-        std::cerr << "error in nat::operand +=(const nat &)"
+    natural += natural;
+    if (natural < natural0) {
+        std::cerr << "error in natural::operand +=(const natural &)"
                   << std::endl;
         exit (1);
     }

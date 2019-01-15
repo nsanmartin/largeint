@@ -1,5 +1,5 @@
 #include <iostream>
-#include <nat.hpp>
+#include <natural.hpp>
 
 int main(int argc, char ** argv)
 {

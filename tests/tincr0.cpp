@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <nat.hpp>
+#include <natural.hpp>
 #include <limits>
 
 constexpr unsigned long ulong_max = std::numeric_limits<unsigned long>::max();
@@ -21,7 +21,7 @@ int main(int argc, char ** argv) {
     //     digits.push_back(std::stoul(argv[i]));
     // }
 
-    lint::nat n{digits};
+    lint::natural n{digits};
     std::cout << n << std::endl;
     ++n;
     std::cout << n << std::endl;

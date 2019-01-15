@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <nat.hpp>
+#include <natural.hpp>
 #include <limits>
 #include <random>
 #include <gmp.h>
@@ -31,21 +31,21 @@ std::string random_string (int size) {
 }
 
 
-bool eq_nat_mpz (lint::nat nat, mpz_t mpz) {
+bool eq_natural_mpz (lint::natural natural, mpz_t mpz) {
     std::string mpz_str{mpz_get_str (NULL, 16, mpz)};
-    return mpz_str == nat.to_string();
+    return mpz_str == natural.to_string();
 
 }
 struct input_number {
     unsigned size;
     std::string s;
-    lint::nat nat;
+    lint::natural natural;
     mpz_t mpz;
     input_number(unsigned sz) :
-        size{sz}, s{random_string(size)}, nat{s} {
+        size{sz}, s{random_string(size)}, natural{s} {
             mpz_init_set_str (mpz, s.c_str(), 16);
 
-            if (mpz_string() != nat.to_string()) {
+            if (mpz_string() != natural.to_string()) {
                 std::cerr << "error parsing string" << std::endl;
                 exit(1);
             }

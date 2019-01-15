@@ -1,5 +1,5 @@
 #include <iostream>
-#include <nat.hpp>
+#include <natural.hpp>
 #include <string>
 
 int main(int argc, char ** argv)
@@ -9,14 +9,14 @@ int main(int argc, char ** argv)
         return 0;
     }
        
-    lint::nat nat{std::string{argv[1]}};
+    lint::natural natural{std::string{argv[1]}};
     int times{std::stoi(argv[2])};
        
-    std::cout << nat << "  num: " << argv[1]
+    std::cout << natural << "  num: " << argv[1]
               << "\t times: 0x" << times
               << std::endl;
     for (int i = 0 ; i < times; i++) {
-        nat += nat;
+        natural += natural;
     }
-    std::cout << nat << std::endl;
+    std::cout << natural << std::endl;
 }
