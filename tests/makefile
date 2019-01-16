@@ -9,8 +9,8 @@ OBJECTS = $(subst ../src/,, $(patsubst %,$(ODIR)/%,$(_OBJS)))
 	g++ $(CXXFLAGS) -c -o $@ $<
 
 tests: tincr tincr0 tsum tsum0 tread tduplicate tduplicate1 \
-	tlastbit tmul-digits
-
+	tlastbit tmul-digits-low tmul-digits-high tmul-digit-pair \
+	tmul-digit-pair-times
 
 
 tincr: $(OBJECTS)
@@ -40,7 +40,16 @@ tlastbit: $(OBJECTS)
 	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
-tmul-digits: $(OBJECTS)
+tmul-digits-low: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tmul-digits-high: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tmul-digit-pair: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tmul-digit-pair-times: $(OBJECTS)
 	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 

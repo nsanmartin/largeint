@@ -11,16 +11,21 @@ constexpr unsigned max_num_of_digits = 1024 * 1024;
 
 constexpr unsigned long ulong_max = std::numeric_limits<unsigned long>::max();
 
+constexpr lint::digit_t digit_max = std::numeric_limits<lint::digit_t>::max();
+
 std::random_device r;
 std::mt19937 rand_gen(r());
 std::uniform_int_distribution<unsigned char> hex_digit(0,15);
 std::uniform_int_distribution<unsigned> rand_size(1, max_num_of_digits);
 std::uniform_int_distribution<unsigned long> rand_long(0, ulong_max);
+std::uniform_int_distribution<lint::digit_t>
+digit_distribution(0,lint::digit_max);
 
-char digit_table[] {
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+char digit_table[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
         'a', 'b', 'c', 'd', 'e', 'f'
         };
+
+lint::digit_t random_digit () { return digit_distribution(rand_gen); }
 
 std::string random_string (int size) {
     std::string res(size, 0);

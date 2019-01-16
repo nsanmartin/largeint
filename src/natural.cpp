@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <bitset>
 #include <sstream>
-
+#include <assert.h>
 using namespace lint;
 natural::natural(std::string s) {
     std::string hex_prefix{"0x"};
@@ -89,7 +89,7 @@ bool natural::operator<(const natural &m) {
 }
 
 natural& natural::operator+=(const natural &m) {
-    if (this == &m) {
+    if (this == &m || *this == m) {
         duplicate();
         return *this;
     }
@@ -112,6 +112,36 @@ natural& natural::operator+=(const natural &m) {
     return *this;
 }
 
+void
+natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
+    digit_t x_low{low_word(x)};
+    digit_t x_high{high_word(x)};
+    digit_t y_low{low_word(y)};
+    digit_t y_high{high_word(y)};
+
+    digit_t x1y1{x_low * y_low};
+    digit_t x2y1{x_high * y_low};
+    digit_t x1y2{x_low * y_high};
+    digit_t x2y2{x_high * y_high};
+
+    digit_t xy_middle_sum{x2y1 + x1y2};
+    bool carry{xy_middle_sum < x2y1};
+
+    digit_t low_middle {xy_middle_sum << (BITS_IN_DIGIT / 2)};
+    if (x1y1 + low_middle < x1y1) {
+        assert(x2y2 < digit_max);
+        x2y2++;
+
+    }
+    low = x1y1 + low_middle;
+
+    high = x2y2 + (xy_middle_sum >> (BITS_IN_DIGIT / 2));
+    if (carry) {
+        high += ((digit_t)1) << (BITS_IN_DIGIT / 2);
+    }
+
+}
+
 void natural::mul_digits_by_low(lowdigit_t n) {
     digit_t carry{};
     for (auto& d : digits) {
@@ -128,23 +158,48 @@ void natural::mul_digits_by_low(lowdigit_t n) {
 }
 
 void natural::mul_digits_by_high(highdigit_t n) {
-    digit_t carry{};
-
-    digit_t fst_high{high_word(digits[0]) * static_cast<digit_t>(n)};
-    // todo!!!
+    // std::cout << "mdbh: n:" << n <<std::endl;
+    // digit_t fst_high{high_word(digits[0]) * static_cast<digit_t>(n)};
+    // digits[0] |= (fst_high << (BITS_IN_DIGIT / 2)) ;
+    // std::cout << "mdbh: digits[0] |= (fst_high << (BITS_IN_DIGIT / 2)):"
+    //           <<  digits[0] << std::endl;
+    // digit_t carry{fst_high >> (BITS_IN_DIGIT / 2)};
     
-    for (auto& d : digits) {
+    digit_t prev_high{};
+    
+    for (auto d = digits.begin(); d != digits.end(); d++) {
         
-        digit_t low{low_word(d) * static_cast<digit_t>(n)};
-        digit_t high{high_word(d) * static_cast<digit_t>(n)};
+        // digit_t low{low_word(*d) * static_cast<digit_t>(n)};
+        // digit_t high{high_word(*d) * static_cast<digit_t>(n)};
+        
+        digit_t low{prev_high};
+        digit_t high{low_word(*d) * static_cast<digit_t>(n)};
+        prev_high = high_word(*d) * static_cast<digit_t>(n);
+        
+        *d = low | (high << (BITS_IN_DIGIT / 2));
+        //carry = high >> (BITS_IN_DIGIT / 2);
+        
 
-        d = (carry + low) | (high << (BITS_IN_DIGIT / 2));
-        carry = high >> (BITS_IN_DIGIT / 2);
     }
-    if (carry != 0) {
-        digits.push_back(carry);
+    if (prev_high != 0) {
+        digits.push_back(prev_high);
     }
 }
+
+natural& natural::operator*=(const digit_t d) {
+    // for (int i = 0; i < digits.size(); i++) {
+    //     digit_t mlow{ low_word(m.digits[i]) };
+    //     for (int j = i; j < digits.size(); j++) {
+    //         digit_t low{ low_word(digits[j]) };
+            
+    //         digit_t prodlow {mlow * low};
+    //         digit_t prodhigh {mlow * hight};
+    //     }
+        
+    // }
+    return *this;
+}
+
 
 
 natural& natural::operator*=(const natural &m) {
@@ -160,6 +215,7 @@ natural& natural::operator*=(const natural &m) {
     // }
     return *this;
 }
+
 void natural::add_digits (const digit_t x, const digit_t y,
                       digit_t &carry, digit_t &sum)
 {
@@ -168,25 +224,25 @@ void natural::add_digits (const digit_t x, const digit_t y,
 }
 
 
-void natural::mul_digits(digit_t const x, digit_t const y,
-                digit_t &left, digit_t &right) {
-    if (x == 0 || y == 0) { left = right = 0; return; }
+// void natural::mul_digits(digit_t const x, digit_t const y,
+//                 digit_t &left, digit_t &right) {
+//     if (x == 0 || y == 0) { left = right = 0; return; }
 
-    digit_t sum, carry;
-    left = 0;
-    right = 1 & y ? x : 0;
-    digit_t n = 1;
+//     digit_t sum, carry;
+//     left = 0;
+//     right = 1 & y ? x : 0;
+//     digit_t n = 1;
 
-    while (y >> n && n < BITS_IN_DIGIT) {
+//     while (y >> n && n < BITS_IN_DIGIT) {
 
-        add_digits(right, nth_bit(y, n) ? x << n : 0, carry, sum);
+//         add_digits(right, nth_bit(y, n) ? x << n : 0, carry, sum);
             
-        left += nth_bit(y, n) ? x >> (BITS_IN_DIGIT - n)  : 0;
-        left += carry;
-        right = sum;
-        n++;
-    }
-}
+//         left += nth_bit(y, n) ? x >> (BITS_IN_DIGIT - n)  : 0;
+//         left += carry;
+//         right = sum;
+//         n++;
+//     }
+// }
 
 
 namespace lint {

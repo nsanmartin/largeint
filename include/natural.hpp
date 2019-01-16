@@ -6,6 +6,7 @@
 #include <iostream>
 #include <climits>
 #include <cstdint>
+#include <limits>
 
 namespace lint {
     using digit_t = uint64_t;
@@ -15,6 +16,7 @@ namespace lint {
     
     constexpr int BITS_IN_DIGIT = CHAR_BIT * sizeof(digit_t);
     constexpr int digit_t_len = sizeof(digit_t);
+    constexpr digit_t digit_max = std::numeric_limits<digit_t>::max();
 
     const  digit_t DIGIT_LOW_MASK = 0xffffffff;
     
@@ -32,13 +34,15 @@ namespace lint {
         inline digit_t high_word(digit_t d) {
             return (d >> (BITS_IN_DIGIT / 2));
         }
-        void mul_digits_by_high(highdigit_t n);
         void add_digits(const digit_t x, const digit_t y,
                         digit_t &carry, digit_t &sum);
-        void mul_digits(digit_t const x, digit_t const y,
-                        digit_t &left, digit_t &right);
     public:
+
+        void
+        mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low);
+
         void mul_digits_by_low(lowdigit_t n);
+        void mul_digits_by_high(highdigit_t n);
 
         natural() : digits{std::vector<digit_t>(1, 0)} {}
         natural(digit_t n) : digits{std::vector<digit_t>(1, n)} {}
@@ -52,6 +56,8 @@ namespace lint {
         
         natural& operator+=(const natural &m);
         natural& operator*=(const natural &m);
+        natural& operator*=(const digit_t d);
+
         friend std::ostream& operator<<(std::ostream& stream, const natural &n);
         std::string to_string();
     };
