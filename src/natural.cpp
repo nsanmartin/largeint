@@ -4,7 +4,15 @@
 #include <bitset>
 #include <sstream>
 #include <assert.h>
+#include <algorithm>
+#include <utility>
+
 using namespace lint;
+
+void natural::transform(std::function<digit_t(digit_t)> f)  {
+    std::transform(digits.begin(), digits.end(), digits.begin(), f);
+}
+
 natural::natural(std::string s) {
     std::string hex_prefix{"0x"};
     // bool is_hex{std::mismatch(s.begin(), s.end(), hex_prefix.begin()) == hex_prefix.end()};
@@ -89,22 +97,27 @@ bool natural::operator<(const natural &m) {
 }
 
 natural& natural::operator+=(const natural &m) {
-    if (this == &m || *this == m) {
-        duplicate();
-        return *this;
+    if (this == &m) { duplicate(); return *this; }
+    const std::vector<digit_t> &ds{m.digits};
+    *this +=ds;
+    return *this;
+}
+
+natural& natural::operator+= (const std::vector<digit_t> &vector) {
+    if (digits == vector) { duplicate(); return *this; }
+    
+    if (vector.size() > digits.size()) {
+        digits.insert(digits.end(), vector.size() - digits.size(), 0);
     }
     
-    if (m.digits.size() > digits.size()) {
-        digits.insert(digits.end(), m.digits.size() - digits.size(), 0);
-    }
     int carry{};
-    for (int i = 0; i < m.digits.size(); i++) {
+    for (int i = 0; i < vector.size(); i++) {
         if (carry > 0 && ++digits[i] != 0) { carry = 0;}
-        carry = digits[i] + m.digits[i] < digits[i];
-        digits[i] += m.digits[i];
+        carry = digits[i] + vector[i] < digits[i];
+        digits[i] += vector[i];
     }
     
-    for (int i = m.digits.size(); i < digits.size(); i++) {
+    for (int i = vector.size(); i < digits.size(); i++) {
         if (carry > 0 && ++digits[i] != 0) { carry = 0;}
     }
 
@@ -187,34 +200,62 @@ void natural::mul_digits_by_high(highdigit_t n) {
 }
 
 natural& natural::operator*=(const digit_t d) {
-    // for (int i = 0; i < digits.size(); i++) {
-    //     digit_t mlow{ low_word(m.digits[i]) };
-    //     for (int j = i; j < digits.size(); j++) {
-    //         digit_t low{ low_word(digits[j]) };
-            
-    //         digit_t prodlow {mlow * low};
-    //         digit_t prodhigh {mlow * hight};
-    //     }
-        
-    // }
+    if (is_zero()) { return *this; }
+    if (d == 0) { digits = std::vector<digit_t> {0}; return *this;}
+    digit_t dlow{low_word(d)};
+    digit_t dhigh{high_word(d)};
+    std::vector<digit_t> dlow_lows, dlow_highs, dhigh_lows, dhigh_highs;
+    // std::transform(digits.begin(), digits.end(),std::back_inserter(dlow_lows),
+    //                [dlow, this](digit_t x) { return dlow * low_word(x); });
+    
+    std::transform(digits.begin(), digits.end(),std::back_inserter(dlow_highs),
+                   [dlow, this](digit_t x) { return dlow * high_word(x); });
+
+    std::transform(digits.begin(), digits.end(),std::back_inserter(dhigh_lows),
+                   [dhigh, this](digit_t x) { return dhigh * low_word(x); });
+
+    std::transform(digits.begin(), digits.end(),std::back_inserter(dhigh_highs),
+                   [dhigh, this](digit_t x) { return dhigh * high_word(x); });
+
+    // low times low is already in it's place
+    transform([dlow, this](digit_t x) { return dlow * low_word(x); });
+
+    // the 'middle sum' is half digit shifted
+    natural low_middle_sum{std::move(dlow_highs)};
+    low_middle_sum += dhigh_lows;
+
+
+    
+    // split the middle
+    // the 'low middle' must be shifted half digit to the left,
+    // then it can safetly be sumed to this.
+    natural high_middle_sum {low_middle_sum};
+    low_middle_sum.transform([] (digit_t x) {
+            return x  << (BITS_IN_DIGIT / 2);
+        });
+    *this += low_middle_sum;
+
+    // the 'high middle' must be shifted half digit to the right.
+    high_middle_sum.transform([] (digit_t x) {
+            return x  >> (BITS_IN_DIGIT / 2);
+        });
+    // maybe we can optimize this:
+    high_middle_sum.digit_rshift(1);
+    
+    *this += high_middle_sum;
+
+    // the 'high high' part must be chifted a digit to the right,
+    // this may algo be optimized
+    dhigh_highs.insert(dhigh_highs.begin(), 0);
+    *this += dhigh_highs;
+
+    while (digits.size() > 0 && digits.back() == 0) {
+        digits.pop_back();
+    }
     return *this;
 }
 
 
-
-natural& natural::operator*=(const natural &m) {
-    // for (int i = 0; i < digits.size(); i++) {
-    //     digit_t mlow{ low_word(m.digits[i]) };
-    //     for (int j = i; j < digits.size(); j++) {
-    //         digit_t low{ low_word(digits[j]) };
-            
-    //         digit_t prodlow {mlow * low};
-    //         digit_t prodhigh {mlow * hight};
-    //     }
-        
-    // }
-    return *this;
-}
 
 void natural::add_digits (const digit_t x, const digit_t y,
                       digit_t &carry, digit_t &sum)
@@ -222,27 +263,6 @@ void natural::add_digits (const digit_t x, const digit_t y,
     carry = x + y < x ? 1 : 0;
     sum = x + y;
 }
-
-
-// void natural::mul_digits(digit_t const x, digit_t const y,
-//                 digit_t &left, digit_t &right) {
-//     if (x == 0 || y == 0) { left = right = 0; return; }
-
-//     digit_t sum, carry;
-//     left = 0;
-//     right = 1 & y ? x : 0;
-//     digit_t n = 1;
-
-//     while (y >> n && n < BITS_IN_DIGIT) {
-
-//         add_digits(right, nth_bit(y, n) ? x << n : 0, carry, sum);
-            
-//         left += nth_bit(y, n) ? x >> (BITS_IN_DIGIT - n)  : 0;
-//         left += carry;
-//         right = sum;
-//         n++;
-//     }
-// }
 
 
 namespace lint {
