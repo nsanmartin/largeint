@@ -4,8 +4,14 @@
 
 int main(int argc, char ** argv)
 {
-    unsigned long multiplo{0xffffffffffff};
-    std::string number_str{"ffffffffffffffffffffffffffffffffffff"};
+    // unsigned long multiplo{0xffffffffffff};
+    // std::string number_str{"ffffffffffffffffffffffffffffffffffff"};
+    unsigned long multiplo{1};
+    std::string number_str{"fffffffffffffffffffffffff"};
+
+    //std::string number_str{"fffffffffffffffffffffffff"};
+    // std::string m_str{"1"};
+    // std::string n_str{"fffffffffffffffffffffffff"};
 
     // mpz number
     mpz_class mpz_n{"0x" + number_str};

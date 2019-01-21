@@ -9,9 +9,11 @@ OBJECTS = $(subst ../src/,, $(patsubst %,$(ODIR)/%,$(_OBJS)))
 	g++ $(CXXFLAGS) -c -o $@ $<
 
 tests: tincr tincr0 tsum tsum0 tread tduplicate tduplicate1 \
-	tlastbit tmul-digits-low tmul-digits-high tmul-digit-pair \
-	tmul-digit-pair-times tdigit-mul tdigit-mul-rand
+	tlastbit   \
+	tdigit-mul tdigit-mul-rand tmul tmul-rand
 
+tests-depr: tmul-digits-low tmul-digits-high tmul-digit-pair \
+	tmul-digit-pair-times 
 
 tincr: $(OBJECTS)
 	g++ -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
@@ -60,6 +62,14 @@ tdigit-mul-rand: $(OBJECTS)
 	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
+tmul: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tmul-rand: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tsum-rand: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
 

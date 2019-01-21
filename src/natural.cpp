@@ -125,97 +125,27 @@ natural& natural::operator+= (const std::vector<digit_t> &vector) {
     return *this;
 }
 
-void
-natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
-    digit_t x_low{low_word(x)};
-    digit_t x_high{high_word(x)};
-    digit_t y_low{low_word(y)};
-    digit_t y_high{high_word(y)};
-
-    digit_t x1y1{x_low * y_low};
-    digit_t x2y1{x_high * y_low};
-    digit_t x1y2{x_low * y_high};
-    digit_t x2y2{x_high * y_high};
-
-    digit_t xy_middle_sum{x2y1 + x1y2};
-    bool carry{xy_middle_sum < x2y1};
-
-    digit_t low_middle {xy_middle_sum << (BITS_IN_DIGIT / 2)};
-    if (x1y1 + low_middle < x1y1) {
-        assert(x2y2 < digit_max);
-        x2y2++;
-
-    }
-    low = x1y1 + low_middle;
-
-    high = x2y2 + (xy_middle_sum >> (BITS_IN_DIGIT / 2));
-    if (carry) {
-        high += ((digit_t)1) << (BITS_IN_DIGIT / 2);
-    }
-
-}
-
-void natural::mul_digits_by_low(lowdigit_t n) {
-    digit_t carry{};
-    for (auto& d : digits) {
-        
-        digit_t low{low_word(d) * static_cast<digit_t>(n)};
-        digit_t high{high_word(d) * static_cast<digit_t>(n)};
-        // overflow in carry + low??
-        d = (carry + low) | (high << (BITS_IN_DIGIT / 2));
-        carry = high >> (BITS_IN_DIGIT / 2);
-    }
-    if (carry != 0) {
-        digits.push_back(carry);
-    }
-}
-
-void natural::mul_digits_by_high(highdigit_t n) {
-    // std::cout << "mdbh: n:" << n <<std::endl;
-    // digit_t fst_high{high_word(digits[0]) * static_cast<digit_t>(n)};
-    // digits[0] |= (fst_high << (BITS_IN_DIGIT / 2)) ;
-    // std::cout << "mdbh: digits[0] |= (fst_high << (BITS_IN_DIGIT / 2)):"
-    //           <<  digits[0] << std::endl;
-    // digit_t carry{fst_high >> (BITS_IN_DIGIT / 2)};
-    
-    digit_t prev_high{};
-    
-    for (auto d = digits.begin(); d != digits.end(); d++) {
-        
-        // digit_t low{low_word(*d) * static_cast<digit_t>(n)};
-        // digit_t high{high_word(*d) * static_cast<digit_t>(n)};
-        
-        digit_t low{prev_high};
-        digit_t high{low_word(*d) * static_cast<digit_t>(n)};
-        prev_high = high_word(*d) * static_cast<digit_t>(n);
-        
-        *d = low | (high << (BITS_IN_DIGIT / 2));
-        //carry = high >> (BITS_IN_DIGIT / 2);
-        
-
-    }
-    if (prev_high != 0) {
-        digits.push_back(prev_high);
-    }
-}
-
 natural& natural::operator*=(const digit_t d) {
     if (is_zero()) { return *this; }
     if (d == 0) { digits = std::vector<digit_t> {0}; return *this;}
     digit_t dlow{low_word(d)};
     digit_t dhigh{high_word(d)};
     std::vector<digit_t> dlow_lows, dlow_highs, dhigh_lows, dhigh_highs;
-    // std::transform(digits.begin(), digits.end(),std::back_inserter(dlow_lows),
-    //                [dlow, this](digit_t x) { return dlow * low_word(x); });
     
-    std::transform(digits.begin(), digits.end(),std::back_inserter(dlow_highs),
-                   [dlow, this](digit_t x) { return dlow * high_word(x); });
+    std::transform(digits.begin(), digits.end(),
+                   std::back_inserter(dlow_highs),
+                   [dlow, this](digit_t x) {
+                       return dlow * high_word(x); });
 
-    std::transform(digits.begin(), digits.end(),std::back_inserter(dhigh_lows),
-                   [dhigh, this](digit_t x) { return dhigh * low_word(x); });
+    std::transform(digits.begin(), digits.end(),
+                   std::back_inserter(dhigh_lows),
+                   [dhigh, this](digit_t x) {
+                       return dhigh * low_word(x); });
 
-    std::transform(digits.begin(), digits.end(),std::back_inserter(dhigh_highs),
-                   [dhigh, this](digit_t x) { return dhigh * high_word(x); });
+    std::transform(digits.begin(), digits.end(),
+                   std::back_inserter(dhigh_highs),
+                   [dhigh, this](digit_t x) {
+                       return dhigh * high_word(x); });
 
     // low times low is already in it's place
     transform([dlow, this](digit_t x) { return dlow * low_word(x); });
@@ -244,7 +174,7 @@ natural& natural::operator*=(const digit_t d) {
     
     *this += high_middle_sum;
 
-    // the 'high high' part must be chifted a digit to the right,
+    // the 'high high' part must be shifted a digit to the right,
     // this may algo be optimized
     dhigh_highs.insert(dhigh_highs.begin(), 0);
     *this += dhigh_highs;
@@ -255,13 +185,23 @@ natural& natural::operator*=(const digit_t d) {
     return *this;
 }
 
+natural& natural::operator*=(const natural& m) {
+    if (is_zero()) { return *this; }
+    if (m.is_zero()) { digits = std::vector<digit_t> {0}; return *this;}
 
-
-void natural::add_digits (const digit_t x, const digit_t y,
-                      digit_t &carry, digit_t &sum)
-{
-    carry = x + y < x ? 1 : 0;
-    sum = x + y;
+    natural accumulator{};
+    
+    for (size_t i = 0; i < m.digits.size(); i++) {
+        if (m.digits[i] != 0) {
+            natural mds{*this};
+            mds *= m.digits[i];
+            // todo: optimize?
+            mds.digit_rshift(i);
+            accumulator += mds;
+        }
+    }
+    *this = accumulator;
+    return *this;
 }
 
 

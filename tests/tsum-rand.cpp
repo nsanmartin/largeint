@@ -5,17 +5,16 @@
 
 int main(int argc, char ** argv)
 {
-    unsigned long multiplo{rand_long(rand_gen)};
-    std::string number_str{random_string(rand_size(rand_gen))};
 
-    // std::cout << multiplo << std::endl;
-    // return 0;
+    std::string n_str{random_string(rand_size(rand_gen))};
+    std::string m_str{random_string(rand_size(rand_gen))};
+
     // mpz number
-    mpz_class mpz_n{"0x" + number_str};
-    mpz_class mpz_m{multiplo};
+    mpz_class mpz_n{"0x" + n_str};
+    mpz_class mpz_m{"0x" + m_str};
 
     auto start_mpz = std::chrono::steady_clock::now();
-    mpz_n *= mpz_m;
+    mpz_n += mpz_m;
     auto end_mpz = std::chrono::steady_clock::now();
     auto diff_mpz = end_mpz - start_mpz;
     std::cout << std::chrono::duration <double, std::milli> (diff_mpz).count()
@@ -23,21 +22,19 @@ int main(int argc, char ** argv)
 
 
     // lint number
-    lint::natural n { number_str };
-    lint::digit_t m {multiplo};
+    lint::natural n { n_str};
+    lint::natural m { m_str};
+
     auto start_lint = std::chrono::steady_clock::now();
-    n *= m;
+    n += m;
     auto end_lint = std::chrono::steady_clock::now();
     auto diff_lint = end_lint - start_lint;
     std::cout << std::chrono::duration <double, std::milli> (diff_lint).count()
          << " ";
 
-
-
     if ( std::string{mpz_n.get_str(16)} == n.to_string() ) {
         std::cout << "Ok." << std::endl;
     } else {
-        std::cout << "error." << std::endl;
         std::cerr << "error multiplicating digits" << std::endl;
         exit(1);
     }
