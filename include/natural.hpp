@@ -55,10 +55,13 @@ namespace lint {
             : digits{std::vector<digit_t>(shift, 0)} {
             digits.push_back(d);
         }
+        natural& add(const std::vector<digit_t> &ds, size_t fst = 0);
 
     public:
-
-
+        void
+        mul_digit_pair(digit_t x, digit_t y,
+                                digit_t &high, digit_t &low);
+        natural& mul(const natural& m);
         // void mul_digits_by_low(lowdigit_t n);
         // void mul_digits_by_high(highdigit_t n);
 
@@ -75,10 +78,11 @@ namespace lint {
         bool operator==(const natural &m);
         bool operator<(const natural &m);
 
-        inline bool is_zero() const { digits.size() == 1 && digits[0] == 0; }
+        inline bool is_zero() const {
+            return digits.size() == 1 && digits[0] == 0;
+        }
         
         natural& operator+=(const natural &m);
-        natural& operator+=(const std::vector<digit_t> &ds);
         natural& operator*=(const digit_t d);
         natural& operator*=(const natural& m);
         

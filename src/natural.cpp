@@ -99,31 +99,33 @@ bool natural::operator<(const natural &m) {
 natural& natural::operator+=(const natural &m) {
     if (this == &m) { duplicate(); return *this; }
     const std::vector<digit_t> &ds{m.digits};
-    *this +=ds;
+    this->add(ds);
     return *this;
 }
 
-natural& natural::operator+= (const std::vector<digit_t> &vector) {
-    if (digits == vector) { duplicate(); return *this; }
-    
-    if (vector.size() > digits.size()) {
-        digits.insert(digits.end(), vector.size() - digits.size(), 0);
+natural&
+natural::add (const std::vector<digit_t> &vector, size_t fst) {
+    if (digits == vector && fst == 0) { duplicate(); return *this; }
+    size_t n {vector.size() + fst};
+    if (n > digits.size()) {
+        digits.insert(digits.end(), n - digits.size(), 0);
     }
     
     int carry{};
-    for (int i = 0; i < vector.size(); i++) {
+    for (int i = fst; i < n; i++) {
         if (carry > 0 && ++digits[i] != 0) { carry = 0;}
-        carry = digits[i] + vector[i] < digits[i];
-        digits[i] += vector[i];
+        carry = digits[i] + vector[i - fst] < digits[i];
+        digits[i] += vector[i - fst];
     }
     
-    for (int i = vector.size(); i < digits.size(); i++) {
+    for (int i = n; i < digits.size(); i++) {
         if (carry > 0 && ++digits[i] != 0) { carry = 0;}
     }
 
     if (carry) { digits.push_back(1); }
     return *this;
 }
+
 
 natural& natural::operator*=(const digit_t d) {
     if (is_zero()) { return *this; }
@@ -159,6 +161,7 @@ natural& natural::operator*=(const digit_t d) {
     // split the middle
     // the 'low middle' must be shifted half digit to the left,
     // then it can safetly be sumed to this.
+    
     natural high_middle_sum {low_middle_sum};
     low_middle_sum.transform([] (digit_t x) {
             return x  << (BITS_IN_DIGIT / 2);
@@ -169,21 +172,23 @@ natural& natural::operator*=(const digit_t d) {
     high_middle_sum.transform([] (digit_t x) {
             return x  >> (BITS_IN_DIGIT / 2);
         });
-    // maybe we can optimize this:
-    high_middle_sum.digit_rshift(1);
     
-    *this += high_middle_sum;
+    // maybe we can optimize this:
+    //high_middle_sum.digit_rshift(1);
+    
+    this->add(high_middle_sum.digits, 1);
 
     // the 'high high' part must be shifted a digit to the right,
     // this may algo be optimized
-    dhigh_highs.insert(dhigh_highs.begin(), 0);
-    *this += dhigh_highs;
+    //dhigh_highs.insert(dhigh_highs.begin(), 0);
+    this->add(dhigh_highs, 1);
 
     while (digits.size() > 0 && digits.back() == 0) {
         digits.pop_back();
     }
     return *this;
 }
+
 
 natural& natural::operator*=(const natural& m) {
     if (is_zero()) { return *this; }
@@ -196,11 +201,67 @@ natural& natural::operator*=(const natural& m) {
             natural mds{*this};
             mds *= m.digits[i];
             // todo: optimize?
-            mds.digit_rshift(i);
-            accumulator += mds;
+            // mds.digit_rshift(i);
+            // accumulator += mds;
+            accumulator.add(mds.digits, i);
         }
     }
     *this = accumulator;
+    return *this;
+}
+
+void
+natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
+    if (x == 0 || y == 0) { high = low = 0; return; }
+    digit_t x_low{low_word(x)};
+    digit_t x_high{high_word(x)};
+    digit_t y_low{low_word(y)};
+    digit_t y_high{high_word(y)};
+
+    digit_t ll{x_low * y_low};
+    digit_t hl{x_high * y_low};
+    digit_t lh{x_low * y_high};
+    digit_t hh{x_high * y_high};
+
+    digit_t middle_sum{hl + lh};
+    bool carry{middle_sum < hl};
+
+    digit_t low_middle {middle_sum << (BITS_IN_DIGIT / 2)};
+    if (ll + low_middle < ll) {
+        assert(hh < digit_max);
+        hh++;
+
+    }
+    low = ll + low_middle;
+
+    high = hh + (middle_sum >> (BITS_IN_DIGIT / 2));
+    if (carry) {
+        high += ((digit_t)1) << (BITS_IN_DIGIT / 2);
+    }
+
+}
+
+natural& natural::mul(const natural &n) {
+    if (is_zero()) { return *this; }
+    if (n.is_zero()) { digits = std::vector<digit_t> {0}; return *this;}
+
+    std::vector<digit_t> sum(digits.size() + n.digits.size() + 1, 0);
+    for (int i = 0; i < digits.size(); i++) {
+        digit_t carry{};
+        for (int j = 0; j < n.digits.size(); j++) {
+            digit_t high, low;
+            mul_digit_pair(digits[i], n.digits[j], high, low);
+            low += carry;
+            if (low < carry) { high++; }
+            sum[i + j] += low;
+            if (sum[i + j] < low) { high++; }
+            carry = high;
+        }
+        sum[i + n.digits.size()] += carry;
+        
+    }
+    while (sum.size() > 0 && sum.back() == 0) { sum.pop_back(); }
+    digits = sum;
     return *this;
 }
 

@@ -1,4 +1,4 @@
-CXXFLAGS = -g -O3 -std=c++11 -I../include -I. -lm -lgmp
+CXXFLAGS = -O3  -std=c++11 -I../include -I. -lm -lgmp
 
 CPP_FILES = $(wildcard ../src/*.cpp)
 _OBJS = $(subst .cpp,.o, $(CPP_FILES))
@@ -9,8 +9,8 @@ OBJECTS = $(subst ../src/,, $(patsubst %,$(ODIR)/%,$(_OBJS)))
 	g++ $(CXXFLAGS) -c -o $@ $<
 
 tests: tincr tincr0 tsum tsum0 tread tduplicate tduplicate1 \
-	tlastbit   \
-	tdigit-mul tdigit-mul-rand tmul tmul-rand
+	tlastbit   tmmm-rand \
+	tdigit-mul tdigit-mul-rand tmul tmul-rand tmulmul-rand
 
 tests-depr: tmul-digits-low tmul-digits-high tmul-digit-pair \
 	tmul-digit-pair-times 
@@ -68,7 +68,13 @@ tmul: $(OBJECTS)
 tmul-rand: $(OBJECTS)
 	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
+tmulmul-rand: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
 tsum-rand: $(OBJECTS)
+	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
+
+tmmm-rand: $(OBJECTS)
 	g++  -o ../build/$@ $@.cpp  $(OBJECTS) $(CXXFLAGS)
 
 
