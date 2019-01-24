@@ -24,15 +24,13 @@ namespace lint {
     class natural {
         std::vector<digit_t> digits;
         void construct_from_hex_string(std::string hexs);
-        bool is_max_digit(int i) { digits.at(i) == digit_t_len; }
+        bool is_max_digit(int i) { return digits.at(i) == digit_t_len; }
         digit_t sum_overflow (digit_t x, digit_t y) {
             return bool{x + y < x};
         }
         inline digit_t nth_bit(digit_t word, int n) {
             return  1 & ((word) >> (n));
         }
-        // void
-        // mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low);
 
         void duplicate();
         inline digit_t low_word(digit_t d) {
@@ -42,10 +40,6 @@ namespace lint {
             return (d >> (BITS_IN_DIGIT / 2));
         }
         void transform(std::function<digit_t(digit_t)> f) ;
-        // void add_digits(const digit_t x, const digit_t y,
-        //                 digit_t &carry, digit_t &sum);
-        // void set_add_vectors (std::vector<digit_t>& set,
-        //                       const std::vector<digit_t>& other);
         void digit_rshift(size_t n) {
             if (n > 0) {
                 digits.insert(digits.begin(), n, 0);
@@ -55,15 +49,12 @@ namespace lint {
             : digits{std::vector<digit_t>(shift, 0)} {
             digits.push_back(d);
         }
-        natural& add(const std::vector<digit_t> &ds, size_t fst = 0);
+        natural& add_shifted(const std::vector<digit_t> &ds, size_t fst = 0);
 
     public:
         void
         mul_digit_pair(digit_t x, digit_t y,
                                 digit_t &high, digit_t &low);
-        natural& mul(const natural& m);
-        // void mul_digits_by_low(lowdigit_t n);
-        // void mul_digits_by_high(highdigit_t n);
 
         natural() : digits{std::vector<digit_t>(1, 0)} {}
         natural(digit_t n) : digits{std::vector<digit_t>(1, n)} {}
@@ -83,7 +74,6 @@ namespace lint {
         }
         
         natural& operator+=(const natural &m);
-        natural& operator*=(const digit_t d);
         natural& operator*=(const natural& m);
         
 

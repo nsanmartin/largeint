@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
     lint::natural m { m_str};
 
     auto start_lint = std::chrono::steady_clock::now();
-    n.mul(m);
+    n *= m;
     auto end_lint = std::chrono::steady_clock::now();
     auto diff_lint = end_lint - start_lint;
     std::cout << std::chrono::duration <double, std::milli> (diff_lint).count()

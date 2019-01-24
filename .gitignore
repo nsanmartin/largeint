@@ -7,7 +7,7 @@
 
 build/*
 obj/*
-
+time/data/*
 
 TAGS
 

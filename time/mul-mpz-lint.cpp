@@ -27,20 +27,11 @@ void mmm(int sz) {
     lint::natural m { m_str};
 
     auto start_lint = std::chrono::steady_clock::now();
-    n.mul(m);
+    n *= m;
     auto end_lint = std::chrono::steady_clock::now();
     auto diff_lint = end_lint - start_lint;
 
     std::cout << std::chrono::duration <double, std::milli> (diff_lint).count()
-              << " ";
-
-
-    lint::natural n2 { n_str};
-    auto start_lint2 = std::chrono::steady_clock::now();
-    n2 *= m;
-    auto end_lint2 = std::chrono::steady_clock::now();
-    auto diff_lint2 = end_lint2 - start_lint2;
-    std::cout << std::chrono::duration <double, std::milli> (diff_lint2).count()
               << std::endl;
 
 
@@ -49,16 +40,12 @@ void mmm(int sz) {
         std::cerr << "error in natural::mul" << std::endl;
         exit_fail = true;
     }
-    if ( std::string{mpz_n.get_str(16)} != n2.to_string() ) {
-        std::cerr << "error in natural::operator*=" << std::endl;
-        exit_fail = true;
-    }
     if (exit_fail) { exit(1); }
 }
 
 
-unsigned min = 100;
-unsigned max = 100000;
+unsigned min = 1000;
+unsigned max = 6000000;
 unsigned step = 100;
 
 int main(int argc, char ** argv) {
