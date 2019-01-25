@@ -97,118 +97,31 @@ bool natural::operator<(const natural &m) {
 }
 
 natural& natural::operator+=(const natural &m) {
-    if (this == &m) { duplicate(); return *this; }
-    const std::vector<digit_t> &ds{m.digits};
-    this->add_shifted(ds);
-    return *this;
-}
-
-natural&
-natural::add_shifted (const std::vector<digit_t> &vector, size_t fst) {
-    if (digits == vector && fst == 0) { duplicate(); return *this; }
-    size_t n {vector.size() + fst};
+    if (this == &m || digits == m.digits) { duplicate(); return *this; }
+    size_t n {m.digits.size()};
     if (n > digits.size()) {
         digits.insert(digits.end(), n - digits.size(), 0);
     }
     
     int carry{};
-    for (size_t i = fst; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         if (carry > 0 && ++digits[i] != 0) { carry = 0;}
-        carry = digits[i] + vector[i - fst] < digits[i];
-        digits[i] += vector[i - fst];
-    }
-    
-    for (size_t i = n; i < digits.size(); i++) {
-        if (carry > 0 && ++digits[i] != 0) { carry = 0;}
+        digits[i] += m.digits[i];
+        carry = digits[i] < m.digits[i];
     }
 
-    if (carry) { digits.push_back(1); }
+    if (carry) {
+        for (size_t i = n; ++digits[i] != 0; i++) {
+            if (i == n) {
+                digits.push_back(1);
+                break;
+            }
+        }
+
+    }
     return *this;
 }
 
-
-// natural& natural::operator*=(const digit_t d) {
-//     if (is_zero()) { return *this; }
-//     if (d == 0) { digits = std::vector<digit_t> {0}; return *this;}
-//     digit_t dlow{low_word(d)};
-//     digit_t dhigh{high_word(d)};
-//     std::vector<digit_t> dlow_lows, dlow_highs, dhigh_lows, dhigh_highs;
-    
-//     std::transform(digits.begin(), digits.end(),
-//                    std::back_inserter(dlow_highs),
-//                    [dlow, this](digit_t x) {
-//                        return dlow * high_word(x); });
-
-//     std::transform(digits.begin(), digits.end(),
-//                    std::back_inserter(dhigh_lows),
-//                    [dhigh, this](digit_t x) {
-//                        return dhigh * low_word(x); });
-
-//     std::transform(digits.begin(), digits.end(),
-//                    std::back_inserter(dhigh_highs),
-//                    [dhigh, this](digit_t x) {
-//                        return dhigh * high_word(x); });
-
-//     // low times low is already in it's place
-//     transform([dlow, this](digit_t x) { return dlow * low_word(x); });
-
-//     // the 'middle sum' is half digit shifted
-//     natural low_middle_sum{std::move(dlow_highs)};
-//     low_middle_sum += dhigh_lows;
-
-
-    
-//     // split the middle
-//     // the 'low middle' must be shifted half digit to the left,
-//     // then it can safetly be sumed to this.
-    
-//     natural high_middle_sum {low_middle_sum};
-//     low_middle_sum.transform([] (digit_t x) {
-//             return x  << (BITS_IN_DIGIT / 2);
-//         });
-//     *this += low_middle_sum;
-
-//     // the 'high middle' must be shifted half digit to the right.
-//     high_middle_sum.transform([] (digit_t x) {
-//             return x  >> (BITS_IN_DIGIT / 2);
-//         });
-    
-//     // maybe we can optimize this:
-//     //high_middle_sum.digit_rshift(1);
-    
-//     this->add(high_middle_sum.digits, 1);
-
-//     // the 'high high' part must be shifted a digit to the right,
-//     // this may algo be optimized
-//     //dhigh_highs.insert(dhigh_highs.begin(), 0);
-//     this->add(dhigh_highs, 1);
-
-//     while (digits.size() > 0 && digits.back() == 0) {
-//         digits.pop_back();
-//     }
-//     return *this;
-// }
-
-
-// natural& natural::operator*=(const natural& m) {
-//     if (is_zero()) { return *this; }
-//     if (m.is_zero()) { digits = std::vector<digit_t> {0}; return *this;}
-
-//     natural accumulator{};
-    
-//     for (size_t i = 0; i < m.digits.size(); i++) {
-//         if (m.digits[i] != 0) {
-//             natural mds{*this};
-//             mds *= m.digits[i];
-//             // todo: optimize?
-//             // mds.digit_rshift(i);
-//             // accumulator += mds;
-//             accumulator.add(mds.digits, i);
-//         }
-//     }
-//     *this = accumulator;
-//     return *this;
-// }
 
 void
 natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
@@ -229,8 +142,7 @@ natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
     bool carry{middle_sum < hl};
 
     digit_t low_middle {middle_sum << (BITS_IN_DIGIT / 2)};
-    if (ll + low_middle < ll) {
-        assert(hh < digit_max);
+    if (ll + low_middle < ll) { //assert(hh < digit_max);
         hh++;
     }
 
