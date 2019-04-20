@@ -139,17 +139,21 @@ natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
     digit_t hh{x_high * y_high};
 
     digit_t middle_sum{hl + lh};
-    bool carry{middle_sum < hl};
+    //bool carry{middle_sum < hl};
 
-    digit_t low_middle {middle_sum << (BITS_IN_DIGIT / 2)};
-    if (ll + low_middle < ll) { //assert(hh < digit_max);
-        hh++;
-    }
+    hh += bool {(middle_sum << (BITS_IN_DIGIT / 2)) + ll < ll};
+    // bool mid_carry {(middle_sum << (BITS_IN_DIGIT / 2)) + ll < ll};
+    
+    // digit_t low_middle {middle_sum << (BITS_IN_DIGIT / 2)};
+    // if (ll + low_middle < ll) { //assert(hh < digit_max);
+    //     hh++;
+    // }
 
-    high = hh + (middle_sum >> (BITS_IN_DIGIT / 2));
-    if (carry) {
-        high += ((digit_t)1) << (BITS_IN_DIGIT / 2);
-    }
+    high = hh + (middle_sum >> (BITS_IN_DIGIT / 2)) + ((digit_t)bool{middle_sum < hl} << (BITS_IN_DIGIT / 2));
+
+    // if (carry) {
+    //     high += ((digit_t)1) << (BITS_IN_DIGIT / 2);
+    // }
 
 }
 

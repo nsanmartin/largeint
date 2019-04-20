@@ -1,3 +1,5 @@
+#ifndef __LINT_TESTS_H
+#define __LINT_TESTS_H
 #include <string>
 #include <vector>
 #include <iostream>
@@ -64,3 +66,6 @@ struct input_number {
 lint::digit_t nth_bit(lint::digit_t word, int n) {
     return  1 & ((word) >> (n));
 }
+
+
+#endif
