@@ -8,6 +8,8 @@ int main(int argc, char ** argv)
     lint::digit_t n{random_digit()};
     lint::digit_t m{random_digit()};
 
+    std::cout << "Multiplying random digits: "
+              << std::hex << n << " times " << m << std::flush;
     mpz_class mpz_n{n};
     mpz_class mpz_m{m};
 
@@ -29,7 +31,7 @@ int main(int argc, char ** argv)
     std::string lint_string{ss.str()};
 
     if ( mpz_string == lint_string ) {
-        std::cout << "Ok." << std::endl;
+        std::cout << " Ok." << std::endl;
     } else {
         std::cerr << "error multiplicating digits" << std::endl;
         std::cout << "n: " << std::hex << n << std::endl

@@ -17,8 +17,8 @@ void test_random_natural_times_digit () {
     lint::digit_t m {multiplo};
     n *= m;
 
-    std::cout << "Natural with " <<  number_str.size()
-              << " digits times " << multiplo << "..."
+    std::cout << "  Multiplying natural with "<< std::dec <<  number_str.size()
+              << " digits with number " << std::hex << multiplo << "..."
               << std::flush;
     
     if ( std::string{mpz_n.get_str(16)} == n.to_string() ) {
@@ -32,9 +32,9 @@ void test_random_natural_times_digit () {
 }
 
 int main() {
-    int number_of_tests {30};
+    int number_of_tests {15};
     std::cout << "Comparing results of " << number_of_tests
-              << " random tests with gmplib\n"
+              << " random tests with gmplib:\n"
               << std::flush;
     
     for (int i = 0; i < number_of_tests; ++i) {
