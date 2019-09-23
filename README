@@ -1,0 +1,19 @@
+README
+
+This proyect is for large integer aritmetic. It currently only
+supports adding and multiplying natural numbers.
+
+
+To build the proyect:
+
+$ cd build
+$ cmake ..
+$ make
+
+To run tests:
+
+$ ctest --verbose
+
+To run random tests
+
+$ make test-random
