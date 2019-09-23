@@ -105,19 +105,25 @@ natural& natural::operator+=(const natural &m) {
     
     int carry{};
     for (size_t i = 0; i < n; i++) {
+        // std::cout << "\ni: " << i << ". "
+        //           << digits[i] << " plus " << m.digits[i] << '\n';
         if (carry > 0 && ++digits[i] != 0) { carry = 0;}
         digits[i] += m.digits[i];
-        carry = digits[i] < m.digits[i];
+        carry = digits[i] < m.digits[i] ? 1 : 0;
     }
 
     if (carry) {
-        for (size_t i = n; ++digits[i] != 0; i++) {
-            if (i == n) {
-                digits.push_back(1);
-                break;
+        if (n < digits.size()) {
+            for (size_t i = n; i < digits.size() && ++digits[i] == 0; i++) 
+                ;
+        } else {
+            for (size_t i = n; ++digits[i] != 0; i++) {
+                if (i == n) {
+                    digits.push_back(1);
+                    break;
+                }
             }
         }
-
     }
     return *this;
 }

@@ -3,12 +3,14 @@
 int main(int argc, char ** argv)
 {
     unsigned long number{2};
-    int times = 99999;
+    int times = 10000;
     
     lint::natural natural {number};
     mpz_t mpz;
     mpz_init_set_ui (mpz, number);
 
+    std::cout << "Comparing with gmplib results of duplicating number 2 "
+              << times << " times (might take some time if many times)" << std::endl;
 
     int i{};
     for (; i < times; i++) {
@@ -25,8 +27,6 @@ int main(int argc, char ** argv)
             exit(1);
         }
     }
-    std::cout << "Ok."  << number << "^" << i << std::endl
-              << natural.to_string().substr(0, 65) << "..."
-              << std::endl; 
+    std::cout << "Ok.\n"; 
 
 }
