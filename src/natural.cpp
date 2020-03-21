@@ -6,20 +6,21 @@
 #include <assert.h>
 #include <algorithm>
 #include <utility>
+#include <stdexcept>
+#include <utility>
+// using namespace lint;
 
-using namespace lint;
-
-void natural::transform(std::function<digit_t(digit_t)> f)  {
-    std::transform(digits.begin(), digits.end(), digits.begin(), f);
-}
-
+// void natural::transform(std::function<digit_t(digit_t)> f)  {
+//     std::transform(digits.begin(), digits.end(), digits.begin(), f);
+// }
+namespace lint {
 natural::natural(std::string s) {
     std::string hex_prefix{"0x"};
     // bool is_hex{std::mismatch(s.begin(), s.end(), hex_prefix.begin()) == hex_prefix.end()};
     // if (is_hex) {
     //     s.erase(s.begin(), s.begin() + 2);
-        construct_from_hex_string(s);
-        //int most_significative_digits {s.size() % (ul_len * 2)}; 
+    construct_from_hex_string(s);
+    //int most_significative_digits {s.size() % (ul_len * 2)}; 
         
 //}
     
@@ -73,7 +74,6 @@ void natural::duplicate() {
     }
     if (lastbit == 1) {
         digits.push_back(1);
-        
     }
 }
 
@@ -145,22 +145,8 @@ natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
     digit_t hh{x_high * y_high};
 
     digit_t middle_sum{hl + lh};
-    //bool carry{middle_sum < hl};
-
     hh += bool {(middle_sum << (BITS_IN_DIGIT / 2)) + ll < ll};
-    // bool mid_carry {(middle_sum << (BITS_IN_DIGIT / 2)) + ll < ll};
-    
-    // digit_t low_middle {middle_sum << (BITS_IN_DIGIT / 2)};
-    // if (ll + low_middle < ll) { //assert(hh < digit_max);
-    //     hh++;
-    // }
-
     high = hh + (middle_sum >> (BITS_IN_DIGIT / 2)) + ((digit_t)bool{middle_sum < hl} << (BITS_IN_DIGIT / 2));
-
-    // if (carry) {
-    //     high += ((digit_t)1) << (BITS_IN_DIGIT / 2);
-    // }
-
 }
 
 natural& natural::operator*=(const natural &n) {
@@ -188,7 +174,75 @@ natural& natural::operator*=(const natural &n) {
 }
 
 
-namespace lint {
+    digit_t natural::get_d_to_normalize(digit_t v_n_minus_1_minus_2) {
+	digit_t v_n_minus_1 {high_word(v_n_minus_1_minus_2) + 1};
+	return shift_halfword(1) / v_n_minus_1;
+    }
+
+    void natural::normalize_for_div(digit_t& d) {
+    	natural high{*this};
+    	(*this) *= natural{d};
+    	high *= natural{shift_halfword(d)};
+    	*this += high;
+    }
+
+    size_t natural::halfword_size() const {
+	size_t res {digits.size() * 2};
+	if (has_zero_on_left()) {
+	    --res;
+	}
+	return res;
+    }
+
+    digit_t natural::halfdigit_at(size_t i) const {
+	auto n = digits.at(i/2);
+	return i % 2 == 0 ?
+	    low_word(n) :
+	    high_word(n);
+    }
+
+    std::pair<digit_t,digit_t> natural:: get_q_hat(natural& div, size_t n, size_t j) {
+
+	digit_t u{shift_halfword(halfdigit_at(n + j)) + halfdigit_at(n + j - 1)};
+	digit_t q_hat = u / div.halfdigit_at(n-1);
+	digit_t r_hat = u % div.halfdigit_at(n-1);
+	return std::make_pair(q_hat, r_hat);
+    }
+
+    
+natural& natural::operator/=(const natural &num) {
+    if (num.is_zero()) { throw std::runtime_error("zero division"); }
+    if (is_zero()) { return *this; }
+    if ((*this) < num) { digits = std::vector<digit_t> {0}; return *this;}
+    
+    digit_t d {get_d_to_normalize(num.back())};
+    natural div {num};
+
+    div.normalize_for_div(d);
+    normalize_for_div(d);
+    //todo: +-1 ?
+    size_t n { div.halfword_size() };
+    size_t m {halfword_size() - (n - 1)};
+
+    for (size_t j = m; 0 <= j; --j) { 
+
+	auto qr {get_q_hat(div, n, j)};
+	
+	while (qr.first > halfdigit_radix() ||
+	    qr.first * div.halfdigit_at(n-2)
+	    > shift_halfword(qr.second) + halfdigit_at(j+n-2) ) {
+	    --qr.first;
+	    qr.second += div.halfdigit_at(n-1);
+
+	    if (qr.second >= halfdigit_radix()) { break; }
+	}
+    }
+    
+    return *this;
+}
+
+
+
     std::ostream& operator<<(std::ostream& stream, const natural &n) {
         size_t i{n.digits.size() - 1};
         stream << std::hex << n.digits[i];
