@@ -20,10 +20,13 @@ namespace lint {
     constexpr int digit_t_len = sizeof(digit_t);
     constexpr digit_t digit_max = std::numeric_limits<digit_t>::max();
 
-    constexpr  digit_t DIGIT_LOW_MASK = 0xffffffff;
-    
+    constexpr  digit_t DIGIT_LOW_MASK = 0xffffffff; 
+    constexpr  digit_t DIGIT_HIGH_MASK = ~(digit_t)0xffffffff;
+   
 
-    inline constexpr digit_t shift_halfword(digit_t n) { return n << sizeof(halfdigit_t); }
+    inline constexpr digit_t shift_halfword(digit_t n) {
+        return n << 32; 
+    }
 
     constexpr digit_t halfdigit_radix() { return shift_halfword(1); }
     
@@ -33,7 +36,17 @@ namespace lint {
     inline digit_t high_word(digit_t d) {
 	return (d >> (BITS_IN_DIGIT / 2));
     }
-  
+
+    inline void set_low_word(digit_t& x, halfdigit_t d) {
+	x &= DIGIT_HIGH_MASK;
+        x |= static_cast<digit_t>(d);
+    }
+    
+    inline void set_high_word(digit_t& x, halfdigit_t d) {
+	x &= DIGIT_LOW_MASK;
+        x |= shift_halfword(d);
+    }
+
     class natural {
         std::vector<digit_t> digits;
         void construct_from_hex_string(std::string hexs);
@@ -46,11 +59,9 @@ namespace lint {
         }
 
         void duplicate();
-        // void transform(std::function<digit_t(digit_t)> f) ;
+
         void digit_rshift(size_t n) {
-            if (n > 0) {
-                digits.insert(digits.begin(), n, 0);
-            }
+            if (n > 0) { digits.insert(digits.begin(), n, 0); }
         }
         natural(size_t shift, digit_t d)
             : digits{std::vector<digit_t>(shift, 0)} {
@@ -85,10 +96,14 @@ namespace lint {
 	digit_t back() const { return digits.back(); }
 	digit_t secondlast() const { return *(digits.rbegin() + 1); }
         natural& operator+=(const natural &m);
+        natural& operator-=(const natural &m);
         natural& operator*=(const natural& m);
 	natural& operator/=(const natural &n);
 
+        void divide_by_halfword(const natural &num);
 	halfdigit_t halfdigit_at(size_t i) const;
+        void set_halfdigit_at(size_t i, halfdigit_t n);
+
 	// halfdigit_t halfback() const ;
 	
 	void normalize_for_div(digit_t& n);

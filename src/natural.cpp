@@ -10,6 +10,7 @@
 #include <utility>
 
 namespace lint {
+
     natural::natural(std::string s) {
 	std::string hex_prefix{"0x"};
 	// bool is_hex{std::mismatch(s.begin(), s.end(), hex_prefix.begin()) == hex_prefix.end()};
@@ -54,9 +55,7 @@ namespace lint {
 	size_t i{0};
 	while (++digits.at(i) == 0 && ++i < digits.size()) 
 	    ;
-	if (i == digits.size()) {
-	    digits.push_back(1);
-	}
+	if (i == digits.size()) { digits.push_back(1); }
 	return *this;
     }
 
@@ -68,9 +67,7 @@ namespace lint {
 	    digits[i] |= lastbit;
 	    lastbit = tmp;
 	}
-	if (lastbit == 1) {
-	    digits.push_back(1);
-	}
+	if (lastbit == 1) { digits.push_back(1); }
     }
 
     bool natural::operator==(const natural &m) {
@@ -122,7 +119,25 @@ namespace lint {
 	return *this;
     }
 
+    natural& natural::operator-=(const natural &m) {
+        if ((*this) < m) {
+            throw std::runtime_error("op-=: negative numbers not implemented yet");
+        }
 
+        bool carry{false};
+
+        for (size_t j = 0; j < m.digits.size(); ++j) {
+            auto w = digits.at(j) - m.digits.at(j);
+            if (carry) { --w; }
+            carry = digits.at(j) - (carry ? 1 : 0) < m.digits.at(j) ? true : false;
+            digits.at(j) = w;
+        }
+
+        if (carry) { --digits.at(m.digits.size()); }
+
+        while (digits.back() == 0 && digits.size() > 1) { digits.pop_back(); }
+        return *this;
+    }
     
     void
     natural::mul_digit_pair(digit_t x, digit_t y, digit_t &high, digit_t &low) {
@@ -169,47 +184,97 @@ namespace lint {
     }
 
 
-    digit_t natural::get_d_to_normalize(digit_t v_n_minus_1_minus_2) {
-	digit_t v_n_minus_1 {high_word(v_n_minus_1_minus_2) + 1};
-	return shift_halfword(1) / v_n_minus_1;
+    digit_t natural::get_d_to_normalize(digit_t v_n_minus_1) {
+        digit_t b{shift_halfword(1)};
+	digit_t res {b / (v_n_minus_1 + 1)};
+        return res;
     }
 
     void natural::normalize_for_div(digit_t& d) {
-    	natural high{*this};
-    	(*this) *= natural{d};
-    	high *= natural{shift_halfword(d)};
-    	*this += high;
+    	// natural high{*this};Q
+    	// (*this) *= natural{d};
+    	// high *= natural{shift_halfword(d)};
+    	// *this += high;
+        (*this) *= natural{d};
     }
 
     size_t natural::halfword_size() const {
+        if (digits.size() == 0) {
+            throw std::runtime_error("halfword_size for empty natural");
+        }
+
 	size_t res {digits.size() * 2};
-	if (has_zero_on_left()) {
-	    --res;
-	}
+	if (has_zero_on_left()) { --res; }
 	return res;
     }
 
+    void natural::set_halfdigit_at(size_t i, halfdigit_t n)  {
+        size_t index = i/2;
+        if (i % 2 == 0) {
+	    set_low_word(digits.at(index), n);
+        } else {
+	    set_high_word(digits.at(index), n);
+        }
+    }
+
+    
     digit_t natural::halfdigit_at(size_t i) const {
-	auto n = digits.at(i/2);
+        size_t index = i/2;
+        if (index >= digits.size()) {
+            std::string msg{"index out of range: i: "};
+            msg += std::to_string(i) + " size: " + std::to_string(digits.size());
+            throw std::runtime_error(msg);
+        }
+	auto n = digits.at(index);
+
 	return i % 2 == 0 ?
 	    low_word(n) :
 	    high_word(n);
+
     }
 
     std::pair<digit_t,digit_t> natural:: get_q_hat(natural& div, size_t n, size_t j) {
 
 	digit_t u{shift_halfword(halfdigit_at(n + j)) + halfdigit_at(n + j - 1)};
+        digit_t divisor = div.halfdigit_at(n-1);
+        
 	digit_t q_hat = u / div.halfdigit_at(n-1);
 	digit_t r_hat = u % div.halfdigit_at(n-1);
 	return std::make_pair(q_hat, r_hat);
     }
 
+    void natural::divide_by_halfword(const natural &num) {
+        auto divisor = static_cast<digit_t>(num.halfdigit_at(0));
+        digit_t tmp{};
+        
+        for (ssize_t i = halfword_size() - 1; i >= 0; --i) {
+            auto u_i = halfdigit_at(i) + tmp;
+            tmp = shift_halfword(u_i % divisor);
+            set_halfdigit_at(i, u_i / divisor);
+        }
+
+        while (digits.back() == 0 && digits.size() > 1) {
+            digits.pop_back();
+        }
+    }
     
     natural& natural::operator/=(const natural &num) {
 	if (num.is_zero()) { throw std::runtime_error("zero division"); }
 	if (is_zero()) { return *this; }
 	if ((*this) < num) { digits = std::vector<digit_t> {0}; return *this;}
-    
+        if (digits.size() == 1) {
+            digits.at(0) /= num.digits.at(0);
+            return *this;
+        }
+
+        if (num.digits.size() == 1) {
+            divide_by_halfword(num);
+            return *this;
+            
+        }
+
+        throw std::runtime_error("operator/= not implemented yet");
+        digit_t d_n_minus_1 {halfdigit_at(halfword_size() - 1)};
 	digit_t d {get_d_to_normalize(num.back())};
 	natural div {num};
 
@@ -217,12 +282,13 @@ namespace lint {
 	normalize_for_div(d);
 	//todo: +-1 ?
 	size_t n { div.halfword_size() };
-	size_t m {halfword_size() - (n - 1)};
 
-	for (size_t j = m; 0 <= j; --j) { 
+	size_t m { halfword_size() - n };
+        std::vector<digit_t> q_digits{};
+        int counter{};
+	for (int j = m; 0 <= j; --j) { 
 
 	    auto qr {get_q_hat(div, n, j)};
-	
 	    while (qr.first > halfdigit_radix() ||
 		   qr.first * div.halfdigit_at(n-2)
 		   > shift_halfword(qr.second) + halfdigit_at(j+n-2) ) {
@@ -230,9 +296,32 @@ namespace lint {
 		qr.second += div.halfdigit_at(n-1);
 
 		if (qr.second >= halfdigit_radix()) { break; }
+                if (++counter > 20) { break; }
 	    }
+
+            natural u{std::vector<digit_t>{digits.begin() + j, digits.begin() + j + n}};
+            natural v{num};
+            v *= qr.first;
+            bool negative{u < v};
+            if (negative) {
+                natural b_to_n_plus_one {1};
+                b_to_n_plus_one.digit_rshift(n+1);
+                b_to_n_plus_one -= u;
+                std::swap(u, b_to_n_plus_one);
+            }
+            u -= v;
+            std::copy(u.digits.begin(), u.digits.end(), digits.begin() + j);
+            q_digits.push_back(qr.first);
+
+            if (negative) {
+                throw std::runtime_error("not impl D6 yet");
+            }
+            
 	}
-    
+
+        (*this) /= natural{d};
+        natural quotient{q_digits};
+        std::swap(*this, quotient);
 	return *this;
     }
 
